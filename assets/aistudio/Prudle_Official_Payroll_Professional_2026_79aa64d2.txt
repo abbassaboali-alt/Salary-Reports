@@ -1,0 +1,716 @@
+<!-- □ زر Logout جاهز — كود واحد فقط -->
+
+<!-- أيقونات FontAwesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+.logout-badge{
+  background:#164478;
+  color:#fff;
+  padding:7px 20px;
+  border-radius:30px;
+  border:none;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  box-shadow:0 3px 8px rgba(0,0,0,0.18);
+  transition:.25s;
+}
+.logout-badge i{
+  font-size:15px;
+}
+.logout-badge:hover{
+  background:#1e5799;
+  transform:translateY(-2px);
+}
+</style>
+
+<!-- زر تسجيل الخروج -->
+<button class="logout-badge" onclick="logout()">
+  <i class="fa-solid fa-right-from-bracket"></i>
+  Logout
+</button>
+
+<script>
+function logout(){
+
+  localStorage.clear();
+  sessionStorage.clear();
+
+  location.replace("https://www.prudle-education.com/log-in-out");
+}
+</script>
+<script>
+(function(){
+
+  function goLogin(){
+    localStorage.clear();
+    sessionStorage.clear();
+    location.replace("https://www.prudle-education.com/log-in-out");
+  }
+
+  function checkLogin(){
+    const user = localStorage.getItem("username");
+    const role = localStorage.getItem("role");
+    const last = localStorage.getItem("loginDate");
+    const today = new Date().toDateString();
+
+    if(!user || role !== "admin" || last !== today){
+      goLogin();
+      return false;
+    }
+
+    return true;
+  }
+
+  if(!checkLogin()) return;
+
+  window.addEventListener("pageshow", function(){
+    checkLogin();
+  });
+
+})();
+</script>
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>الحضور للمدربين – تقرير الرواتب مع تعديل سعر الساعة</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore-compat.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+
+<style>
+html,body{
+  margin:0;
+  padding:0;
+  width:100%;
+  overflow-x:hidden;
+}
+*{box-sizing:border-box}
+body{
+  font-family:"Tajawal",sans-serif;
+  background:#f6f8fb;
+}
+header{
+  background:#164478;
+  color:#fff;
+  padding:16px;
+  text-align:center;
+}
+.logo{
+  width:54px;
+  background:#fff;
+  border-radius:10px;
+  padding:4px;
+}
+.card{
+  background:#fff;
+  padding:18px;
+  border-radius:14px;
+  width:92%;
+  margin:15px auto;
+  box-shadow:0 4px 12px rgba(0,0,0,.10);
+}
+.filters{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:10px;
+  margin-bottom:12px;
+}
+select,input{
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #ccc;
+  font-family:"Tajawal",sans-serif;
+}
+.tools{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin:10px 0 14px;
+}
+button{
+  padding:10px 18px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-family:"Tajawal",sans-serif;
+  font-size:14px;
+}
+.pdf{background:#0a58ca;color:#fff}
+.checkall{background:#e9edf7;color:#164478}
+.saveMini{background:#2ecc71;color:#fff;padding:8px 12px}
+.refreshBtn{background:#f39c12;color:#fff}
+.note{
+  color:#888;
+  font-weight:700;
+  text-align:center;
+  margin:14px 0;
+}
+.summaryBox{
+  background:#f8fbff;
+  border:1px solid #d9e8ff;
+  border-radius:12px;
+  padding:14px;
+  margin:12px 0;
+  color:#164478;
+  font-weight:700;
+}
+.small{
+  font-size:12px;
+  color:#666;
+}
+.course-item{
+  display:grid;
+  grid-template-columns:32px 1.4fr 1fr 120px 120px;
+  align-items:center;
+  gap:10px;
+  margin:8px 0;
+  font-size:13px;
+  padding:12px;
+  border-radius:10px;
+  background:#f8fbff;
+  border:1px solid #e3edff;
+}
+.course-main{
+  line-height:1.7;
+}
+.priceWrap{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+.priceInput{
+  width:100%;
+  text-align:center;
+  font-weight:700;
+}
+.badge{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:700;
+  background:#eef3ff;
+  color:#164478;
+}
+.rowMeta{
+  color:#666;
+  font-size:12px;
+}
+.statGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:10px;
+  margin-top:10px;
+}
+.statBox{
+  background:#fff;
+  border:1px solid #d9e8ff;
+  border-radius:10px;
+  padding:12px;
+}
+.statBox b{
+  color:#164478;
+  font-size:18px;
+}
+@media (max-width:900px){
+  .course-item{
+    grid-template-columns:1fr;
+    align-items:start;
+  }
+  .priceWrap{
+    justify-content:flex-start;
+  }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <img class="logo" src="https://prudle.edu.sa/wp-content/uploads/2020/11/about.png" alt="Prudle"><br>
+  <b>الحضور للمدربين – تقرير الرواتب مع تعديل سعر الساعة</b>
+</header>
+
+<div class="card">
+  <div class="filters">
+    <select id="fTrainer"><option value="">المدرب</option></select>
+    <select id="fCourse"><option value="">الدورة</option></select>
+    <select id="fPeriod"><option value="">الفترة</option></select>
+    <select id="fSection"><option value="">القسم</option></select>
+    <select id="fBranch"><option value="">الفرع</option></select>
+    <select id="fStart"><option value="">تاريخ البداية</option></select>
+  </div>
+
+  <div class="tools" id="tools" style="display:none">
+    <button class="checkall" onclick="toggleAll(true)">✓ تحديد الكل</button>
+    <button class="checkall" onclick="toggleAll(false)">✕ إلغاء الكل</button>
+    <button class="refreshBtn" onclick="applyFilters()">↻ تحديث العرض</button>
+
+    <select id="sortBy" style="max-width:220px">
+      <option value="trainer">ترتيب حسب المدرب</option>
+      <option value="hours">ترتيب حسب الساعات المحتسبة</option>
+      <option value="salary">ترتيب حسب صافي الراتب</option>
+      <option value="deduction">ترتيب حسب الخصم</option>
+    </select>
+  </div>
+
+  <div id="summaryPreview" class="summaryBox" style="display:none"></div>
+
+  <div id="coursesMulti"></div>
+  <div class="note" id="note">يرجى اختيار فلتر واحد على الأقل</div>
+
+  <div style="text-align:center;margin-top:14px">
+    <button class="pdf" onclick="exportMultiPDF()"><i class="fa-solid fa-file-pdf"></i> تصدير PDF</button>
+  </div>
+</div>
+
+<script>
+
+
+/* =========================
+   Firebase
+========================= */
+firebase.initializeApp({
+  apiKey:"AIzaSyCCFBvZosI8dwShZjxvZzI-SU5igEbcOKk",
+  projectId:"prudle-system"
+});
+const db = firebase.firestore();
+
+/* =========================
+   أدوات عامة
+========================= */
+function getDate(v){
+  if(!v) return null;
+  return v.toDate ? v.toDate() : new Date(v);
+}
+
+function formatYMD(v){
+  const d = getDate(v);
+  if(!d || isNaN(d)) return "";
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+
+function num(v){
+  return Number(v || 0) || 0;
+}
+
+function money(v){
+  return num(v).toFixed(2);
+}
+
+function safeText(v){
+  return String(v ?? "").trim();
+}
+
+function toMinutes(hhmm){
+  if(!hhmm || !hhmm.includes(":")) return 0;
+  const [h,m] = hhmm.split(":").map(Number);
+  return (h * 60) + m;
+}
+
+function minutesToHours(mins){
+  return num(mins) / 60;
+}
+
+function timeStringFromTS(ts){
+
+  if(!ts) return "";
+
+  let d = null;
+
+  if(ts.toDate){
+    d = ts.toDate();
+  }else{
+    d = new Date(ts);
+  }
+
+  if(!d || isNaN(d)){
+    return "";
+  }
+
+  return d.toTimeString().slice(0,5);
+
+}
+
+/* =========================
+   حسابات التقرير - نفس آلية صفحة الحضور
+========================= */
+/* =========================
+   حسابات التقرير - معالجة عبور منتصف الليل
+========================= */
+function calcPayrollMetrics(record, course){
+  const empty={actualMinutes:0,grossMinutes:0,delayMinutes:0,deductionMinutes:0,workedMinutes:0};
+  const parseDate=v=>{const d=v?.toDate?v.toDate():new Date(v);return Number.isFinite(d.getTime())?d:null;};
+  const entry=parseDate(record?.startTS),exit=parseDate(record?.endTS);
+  if(!entry||!exit)return empty;
+  let inMs=entry.getTime(),outMs=exit.getTime();
+  if(outMs<=inMs && inMs-outMs<86400000)outMs+=86400000;
+  if(outMs<=inMs)return empty;
+  const actualMinutes=Math.min(1440,(outMs-inMs)/60000);
+  const st=safeText(course?.courseStartTime),en=safeText(course?.courseEndTime);
+  if(!/^\d{1,2}:\d{2}$/.test(st)||!/^\d{1,2}:\d{2}$/.test(en)){
+    // Without official hours, do not invent a cap or lateness deduction.
+    return {...empty,actualMinutes:Math.round(actualMinutes),grossMinutes:Math.round(actualMinutes),workedMinutes:Math.round(actualMinutes)};
+  }
+  const day=/^\d{4}-\d{2}-\d{2}$/.test(String(record.Date||""))?record.Date:null;
+  const base=day?new Date(day+"T00:00:00"):new Date(entry.getFullYear(),entry.getMonth(),entry.getDate());
+  const [sh,sm]=st.split(":").map(Number),[eh,em]=en.split(":").map(Number);
+  const start=new Date(base);start.setHours(sh,sm,0,0);
+  const end=new Date(base);end.setHours(eh,em,0,0);
+  if(end<=start)end.setDate(end.getDate()+1);
+  if(!day && inMs<start.getTime() && start.getTime()-inMs>43200000){start.setDate(start.getDate()-1);end.setDate(end.getDate()-1);}
+  const officialStart=start.getTime(),officialEnd=end.getTime();
+  const duration=(officialEnd-officialStart)/60000;
+  // Maximum eligible time is the scheduled interval up to the trainer's checkout.
+  const grossMinutes=Math.max(0,Math.min(duration,(Math.min(outMs,officialEnd)-officialStart)/60000));
+  const delayMinutes=Math.max(0,(inMs-officialStart)/60000);
+  // 0-15 min inclusive: grace. Over 15 min: charge every late minute.
+  const deductionMinutes=delayMinutes>15?Math.min(grossMinutes,delayMinutes):0;
+  const workedMinutes=Math.max(0,grossMinutes-deductionMinutes);
+  return {actualMinutes:Math.round(actualMinutes),grossMinutes:Math.round(grossMinutes),delayMinutes:Math.round(delayMinutes),deductionMinutes:Math.round(deductionMinutes),workedMinutes:Math.round(workedMinutes)};
+}
+
+/* =========================
+   البيانات
+========================= */
+let ALL_COURSES = [];
+let FILTERED_COURSES = [];
+
+/* =========================
+   تحميل الدورات
+========================= */
+db.collection("Courses").onSnapshot(s=>{
+  ALL_COURSES = [];
+
+  const sets = {
+    Trainer:new Set(),
+    Course:new Set(),
+    Period:new Set(),
+    Section:new Set(),
+    Branch:new Set(),
+    Start:new Set()
+  };
+
+  s.forEach(doc=>{
+    const c = doc.data() || {};
+    if(c.status === "closed") return;
+
+    const row = { id:doc.id, ...c };
+    ALL_COURSES.push(row);
+
+    if(c.Trainer) sets.Trainer.add(c.Trainer);
+    if(c.TrainingCourse) sets.Course.add(c.TrainingCourse);
+    if(c.Period) sets.Period.add(c.Period);
+    if(c.Section) sets.Section.add(c.Section);
+    if(c.Branch) sets.Branch.add(c.Branch);
+
+    const sd = formatYMD(c.StartingDate);
+    if(sd) sets.Start.add(sd);
+  });
+
+  fillSelect("fTrainer", sets.Trainer, "المدرب");
+  fillSelect("fCourse", sets.Course, "الدورة");
+  fillSelect("fPeriod", sets.Period, "الفترة");
+  fillSelect("fSection", sets.Section, "القسم");
+  fillSelect("fBranch", sets.Branch, "الفرع");
+  fillSelect("fStart", sets.Start, "تاريخ البداية");
+
+  applyFilters();
+});
+
+function fillSelect(id, set, title){
+  const el = document.getElementById(id);
+  const oldVal = el.value;
+  el.innerHTML = `<option value="">${title}</option>`;
+  [...set].sort((a,b)=>String(a).localeCompare(String(b),"ar")).forEach(v=>{
+    el.innerHTML += `<option value="${String(v).replace(/"/g,'&quot;')}">${v}</option>`;
+  });
+  if([...el.options].some(o=>o.value === oldVal)) el.value = oldVal;
+}
+
+/* =========================
+   الفلاتر
+========================= */
+document.querySelectorAll(".filters select").forEach(s=>s.onchange = applyFilters);
+
+function applyFilters(){
+  const t = document.getElementById("fTrainer").value;
+  const c = document.getElementById("fCourse").value;
+  const p = document.getElementById("fPeriod").value;
+  const s = document.getElementById("fSection").value;
+  const b = document.getElementById("fBranch").value;
+  const d = document.getElementById("fStart").value;
+
+  if(!t && !c && !p && !s && !b && !d){
+    FILTERED_COURSES = [];
+    document.getElementById("coursesMulti").innerHTML = "";
+    document.getElementById("note").style.display = "block";
+    document.getElementById("tools").style.display = "none";
+    document.getElementById("summaryPreview").style.display = "none";
+    return;
+  }
+
+  FILTERED_COURSES = ALL_COURSES.filter(x=>{
+    if(t && x.Trainer !== t) return false;
+    if(c && x.TrainingCourse !== c) return false;
+    if(p && x.Period !== p) return false;
+    if(s && x.Section !== s) return false;
+    if(b && x.Branch !== b) return false;
+    if(d && formatYMD(x.StartingDate) !== d) return false;
+    return true;
+  });
+
+  renderCourses(FILTERED_COURSES);
+}
+
+function renderCourses(arr){
+  const coursesMulti = document.getElementById("coursesMulti");
+  const note = document.getElementById("note");
+  const tools = document.getElementById("tools");
+  const summaryPreview = document.getElementById("summaryPreview");
+
+  coursesMulti.innerHTML = "";
+  note.style.display = arr.length ? "none" : "block";
+  tools.style.display = arr.length ? "flex" : "none";
+  summaryPreview.style.display = arr.length ? "block" : "none";
+
+  if(!arr.length){
+    summaryPreview.innerHTML = "";
+    note.textContent = "لا توجد دورات مطابقة للفلاتر الحالية";
+    return;
+  }
+
+  const totalHourPrice = arr.reduce((a,c)=>a + num(c.HourPrice || c.hourPrice || 0), 0);
+  const avgHourPrice = arr.length ? (totalHourPrice / arr.length) : 0;
+
+  summaryPreview.innerHTML = `
+    عدد الدورات المطابقة: ${arr.length}
+    <div class="statGrid">
+      <div class="statBox">
+        <div class="small">متوسط سعر الساعة</div>
+        <b>${money(avgHourPrice)} ريال</b>
+      </div>
+      <div class="statBox">
+        <div class="small">إجمالي المدربين الظاهرين</div>
+        <b>${new Set(arr.map(x=>x.Trainer || "-")).size}</b>
+      </div>
+      <div class="statBox">
+        <div class="small">آلية الحساب</div>
+        <b style="font-size:14px">الساعات المحتسبة لا تتجاوز مدة الدورة الرسمية | الحضور المبكر والانصراف المتأخر لا يضيفان ساعات | التأخير يقلل ساعات الحضور </b>
+      </div>
+    </div>
+  `;
+
+  arr.forEach(c=>{
+    const price = num(c.HourPrice || c.hourPrice || 0);
+
+    coursesMulti.innerHTML += `
+      <div class="course-item" id="row_${c.id}">
+        <div>
+          <input type="checkbox" class="courseCheck" value="${c.id}">
+        </div>
+
+        <div class="course-main">
+          <div>
+            <b>${c.Trainer || "-"}</b>
+            <span class="badge">${c.TrainingCourse || "-"}</span>
+          </div>
+          <div class="rowMeta">
+            الفترة: ${c.Period || "-"} |
+            الفرع: ${c.Branch || "-"} |
+            القسم: ${c.Section || "-"} |
+            البداية: ${formatYMD(c.StartingDate) || "-"} |
+            الدوام: ${safeText(c.courseStartTime || "--:--")} → ${safeText(c.courseEndTime || "--:--")}
+          </div>
+        </div>
+
+        <div>
+          <div class="small">السعر الحالي</div>
+          <b id="currentPrice_${c.id}">${money(price)} ريال</b>
+        </div>
+
+        <div class="priceWrap">
+          <input type="number" min="0" step="0.01" class="priceInput" id="price_${c.id}" value="${price}">
+        </div>
+
+        <div class="priceWrap">
+          <button class="saveMini" onclick="saveHourPrice('${c.id}')">حفظ السعر</button>
+        </div>
+      </div>
+    `;
+  });
+}
+
+function toggleAll(v){
+  document.querySelectorAll(".courseCheck").forEach(c=>c.checked = v);
+}
+
+/* =========================
+   حفظ سعر الساعة
+========================= */
+async function saveHourPrice(courseId){
+  const input = document.getElementById("price_" + courseId);
+  if(!input) return;
+
+  const newPrice = num(input.value);
+
+  try{
+    await db.collection("Courses").doc(courseId).set({
+      HourPrice:newPrice,
+      updatedAt:firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy:localStorage.getItem("username") || "system"
+    }, {merge:true});
+
+    const course = ALL_COURSES.find(x=>x.id === courseId);
+    if(course){
+      course.HourPrice = newPrice;
+      course.hourPrice = newPrice;
+    }
+
+    const currentPriceEl = document.getElementById("currentPrice_" + courseId);
+    if(currentPriceEl) currentPriceEl.textContent = `${money(newPrice)} ريال`;
+
+    alert("تم حفظ سعر الساعة بنجاح");
+  }catch(err){
+    console.error(err);
+    alert("حدث خطأ أثناء حفظ سعر الساعة");
+  }
+}
+
+/* =========================
+   التصدير PDF
+========================= */
+async function exportMultiPDF(){
+  const ids=[...document.querySelectorAll(".courseCheck:checked")].map(x=>x.value);
+  if(!ids.length){alert("يرجى تحديد دورة واحدة على الأقل");return;}
+  const {jsPDF}=window.jspdf;
+  const pdf=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
+  const W=297,H=210,NAVY=[22,68,120],INK=[32,48,71],MUTED=[104,122,146],LIGHT=[243,247,252],TEAL=[10,121,118];
+  const fmt=v=>Number(v||0).toFixed(2);
+  const dateLabel=new Date().toLocaleDateString("en-GB");
+  const all=[];
+  for(const id of ids){
+    const c=ALL_COURSES.find(x=>x.id===id);if(!c)continue;
+    const el=document.getElementById("price_"+id);
+    const price=el?num(el.value):num(c.HourPrice||c.hourPrice);
+    const snap=await db.collection("Courses").doc(id).collection("Attendance").get();
+    const sums={actual:0,gross:0,deduct:0,payable:0,delay:0,days:0};
+    snap.forEach(doc=>{
+      const r=doc.data()||{},m=calcPayrollMetrics(r,c);
+      if(!r.startTS||!r.endTS)return;
+      sums.actual+=m.actualMinutes;sums.gross+=m.grossMinutes;
+      sums.deduct+=m.deductionMinutes;sums.payable+=m.workedMinutes;
+      sums.delay+=m.delayMinutes;sums.days++;
+    });
+    all.push({trainer:c.Trainer||"-",course:c.TrainingCourse||"-",period:c.Period||"-",branch:c.Branch||"-",section:c.Section||"-",date:formatYMD(c.StartingDate)||"-",schedule:`${safeText(c.courseStartTime||"--:--")} - ${safeText(c.courseEndTime||"--:--")}`,price,...sums,grossSalary:sums.gross/60*price,deductionSalary:sums.deduct/60*price,netSalary:sums.payable/60*price});
+  }
+  if(!all.length){alert("لا توجد دورات صالحة للتقرير");return;}
+  const groups=new Map();
+  all.forEach(c=>{if(!groups.has(c.trainer))groups.set(c.trainer,[]);groups.get(c.trainer).push(c);});
+  const sortBy=document.getElementById("sortBy").value;
+  const entries=[...groups.entries()].sort((a,b)=>{
+    const sum=(arr,key)=>arr.reduce((t,c)=>t+c[key],0);
+    if(sortBy==="hours")return sum(b[1],"payable")-sum(a[1],"payable");
+    if(sortBy==="salary")return sum(b[1],"netSalary")-sum(a[1],"netSalary");
+    if(sortBy==="deduction")return sum(b[1],"deduct")-sum(a[1],"deduct");
+    return a[0].localeCompare(b[0],"ar");
+  });
+  const totals={days:0,actual:0,gross:0,deduct:0,payable:0,delay:0,grossSalary:0,deductionSalary:0,netSalary:0};
+  all.forEach(c=>Object.keys(totals).forEach(k=>totals[k]+=c[k]||0));
+  function basePage(kicker){
+    pdf.setFillColor(...LIGHT);pdf.rect(0,0,W,H,"F");
+    pdf.setFillColor(...NAVY);pdf.rect(0,0,W,31,"F");
+    pdf.setFillColor(...TEAL);pdf.rect(0,31,W,1.5,"F");
+    pdf.setFont("helvetica","bold");pdf.setTextColor(255,255,255);pdf.setFontSize(20);
+    pdf.text("PRUDLE",12,15);pdf.setFontSize(9);pdf.text("LANGUAGE INSTITUTE",12,22);
+    pdf.setFontSize(17);pdf.text("TRAINER PAYROLL STATEMENT",W-12,16,{align:"right"});
+    pdf.setFont("helvetica","normal");pdf.setFontSize(9);pdf.text(kicker,W-12,24,{align:"right"});
+    pdf.setDrawColor(214,224,236);pdf.line(12,H-14,W-12,H-14);
+    pdf.setTextColor(...MUTED);pdf.setFontSize(8);
+    pdf.text("CONFIDENTIAL  |  Finance & Academic Administration",12,H-8);
+    pdf.text(`Generated: ${dateLabel}`,W-12,H-8,{align:"right"});
+  }
+  function card(x,y,w,label,value,sub){
+    pdf.setFillColor(255,255,255);pdf.setDrawColor(221,230,240);
+    pdf.roundedRect(x,y,w,23,2,2,"FD");
+    pdf.setFont("helvetica","normal");pdf.setTextColor(...MUTED);pdf.setFontSize(8);
+    pdf.text(label,x+4,y+6);
+    pdf.setFont("helvetica","bold");pdf.setTextColor(...NAVY);pdf.setFontSize(14);
+    pdf.text(value,x+4,y+15);
+    if(sub){pdf.setFont("helvetica","normal");pdf.setFontSize(7);pdf.setTextColor(...MUTED);pdf.text(sub,x+4,y+20);}
+  }
+  function section(x,y,label){pdf.setFillColor(...NAVY);pdf.roundedRect(x,y,273,9,2,2,"F");pdf.setTextColor(255,255,255);pdf.setFont("helvetica","bold");pdf.setFontSize(10);pdf.text(label,x+4,y+6);}
+  basePage("EXECUTIVE SUMMARY  /  OFFICIAL PAYROLL");
+  pdf.setTextColor(...INK);pdf.setFontSize(10);pdf.setFont("helvetica","normal");
+  pdf.text(`Reporting date: ${dateLabel}     Trainers: ${groups.size}     Courses: ${all.length}`,12,42);
+  card(12,49,65,"PAYABLE HOURS",fmt(totals.payable/60),"Within scheduled hours");
+  card(81,49,65,"DEDUCTION",fmt(totals.deductionSalary)+" SAR","Late minutes beyond grace");
+  card(150,49,65,"GROSS PAY",fmt(totals.grossSalary)+" SAR","Before lateness deduction");
+  card(219,49,66,"NET PAYABLE",fmt(totals.netSalary)+" SAR","Final amount");
+  section(12,80,"CONSOLIDATED PAYROLL OVERVIEW");
+  pdf.autoTable({startY:92,margin:{left:12,right:12,bottom:21},
+    head:[["Trainer","Courses","Days","Gross h","Late min","Deduct h","Payable h","Net (SAR)"]],
+    body:entries.map(([name,rows])=>{const sum=k=>rows.reduce((t,r)=>t+r[k],0);return [name,rows.length,sum("days"),fmt(sum("gross")/60),Math.round(sum("delay")),fmt(sum("deduct")/60),fmt(sum("payable")/60),fmt(sum("netSalary"))];}),
+    theme:"plain",headStyles:{fillColor:NAVY,textColor:255,fontStyle:"bold",fontSize:8,cellPadding:3},
+    bodyStyles:{textColor:INK,fontSize:8,cellPadding:3},alternateRowStyles:{fillColor:[235,242,249]},
+    columnStyles:{7:{halign:"right",fontStyle:"bold"}},
+    didDrawPage:()=>{},
+  });
+  let y=Math.min(pdf.lastAutoTable.finalY+9,175);
+  if(y>167){pdf.addPage();basePage("PAYROLL POLICY");y=42;}
+  pdf.setTextColor(...INK);pdf.setFontSize(9);pdf.setFont("helvetica","bold");
+  pdf.text("PAYROLL RULES",12,y);
+  pdf.setFont("helvetica","normal");pdf.setFontSize(8);pdf.setTextColor(...MUTED);
+  pdf.text("No overtime before or after official course hours. Lateness up to 15 minutes is waived.",12,y+7);
+  pdf.text("When lateness exceeds 15 minutes, every late minute is deducted at the applicable hourly rate.",12,y+12);
+  for(let i=0;i<entries.length;i++){
+    const [name,rows]=entries[i];
+    pdf.addPage();basePage(`TRAINER DETAIL  /  ${i+1} OF ${entries.length}`);
+    const sum=k=>rows.reduce((t,r)=>t+r[k],0);
+    pdf.setTextColor(...INK);pdf.setFont("helvetica","bold");pdf.setFontSize(16);
+    pdf.text(name,12,43);
+    pdf.setFontSize(9);pdf.setFont("helvetica","normal");pdf.setTextColor(...MUTED);
+    pdf.text(`${rows.length} course(s)  |  ${sum("days")} attendance record(s)`,12,49);
+    card(12,55,65,"GROSS PAY",fmt(sum("grossSalary"))+" SAR");
+    card(81,55,65,"LATE DEDUCTION",fmt(sum("deductionSalary"))+" SAR");
+    card(150,55,65,"PAYABLE HOURS",fmt(sum("payable")/60));
+    card(219,55,66,"NET PAYABLE",fmt(sum("netSalary"))+" SAR");
+    section(12,86,"COURSE ATTENDANCE & PAYROLL DETAILS");
+    pdf.autoTable({startY:98,margin:{left:12,right:12,bottom:20},
+      head:[["Course","Period","Branch","Official Time","Days","Rate","Gross h","Late min","Deduct h","Payable h","Net SAR"]],
+      body:rows.map(c=>[c.course,c.period,c.branch,c.schedule,c.days,fmt(c.price),fmt(c.gross/60),Math.round(c.delay),fmt(c.deduct/60),fmt(c.payable/60),fmt(c.netSalary)]),
+      theme:"grid",headStyles:{fillColor:NAVY,textColor:255,fontSize:7,cellPadding:2.5},
+      bodyStyles:{textColor:INK,fontSize:7,cellPadding:2.5},alternateRowStyles:{fillColor:[242,246,251]},
+      columnStyles:{10:{fontStyle:"bold",textColor:TEAL,halign:"right"}},
+    });
+    let bottom=pdf.lastAutoTable.finalY+8;
+    if(bottom<166){pdf.setFont("helvetica","normal");pdf.setFontSize(8);pdf.setTextColor(...MUTED);pdf.text("Calculation: Gross scheduled eligible minutes - applicable lateness deduction = payable minutes.",12,bottom);}
+  }
+  const pages=pdf.getNumberOfPages();
+  for(let p=1;p<=pages;p++){pdf.setPage(p);pdf.setTextColor(...MUTED);pdf.setFontSize(8);pdf.text(`Page ${p} / ${pages}`,W/2,H-8,{align:"center"});}
+  pdf.save("Prudle_Official_Trainers_Payroll.pdf");
+}
+
+</script>
+
+</body>
+</html>
+
+
