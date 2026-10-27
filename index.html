@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prudle Language Institute – Trainers Attendance & Payroll Report</title>
+    <meta name="description" content="Prudle Language Institute - Trainers Attendance & Payroll Report with Hourly Rate Adjustment and PDF Export" />
+    <meta property="og:title" content="Prudle Language Institute – Trainers Attendance & Payroll Report" />
+    <meta property="og:description" content="Prudle Language Institute - Trainers Attendance & Payroll Report with Hourly Rate Adjustment and PDF Export" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Production Host Guard & Deterrents -->
+    <script>
+      (function () {
+        'use strict';
+        const LOGIN_URL = 'https://www.prudle-education.com/log-in-out';
+        const ALLOWED_PROD_HOSTS = new Set([
+          'www.prudle-education.com',
+          'prudle-education.com',
+          'abbassaboali-alt.github.io'
+        ]);
+
+        // Key interception deterrent for Ctrl+S / Cmd+S
+        window.addEventListener('keydown', function (event) {
+          if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+            event.preventDefault();
+          }
+        }, { capture: true });
+
+        const hostname = location.hostname.toLowerCase();
+        const isLocalOrDev = hostname === 'localhost' ||
+          hostname === '127.0.0.1' ||
+          hostname.endsWith('.run.app') ||
+          hostname.endsWith('.aistudio.google') ||
+          hostname.endsWith('.webcontainer.io');
+
+        if (!isLocalOrDev) {
+          const allowed = location.protocol === 'https:' && ALLOWED_PROD_HOSTS.has(hostname);
+          if (!allowed) {
+            window.stop();
+            try { document.documentElement.innerHTML = ''; } catch (_) {}
+            window.location.replace(LOGIN_URL);
+          }
+        }
+      })();
+    </script>
+    <script type="module" crossorigin src="./assets/index-swcwDseR.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-CFY5OwqK.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
